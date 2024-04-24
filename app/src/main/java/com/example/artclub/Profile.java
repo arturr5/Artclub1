@@ -58,7 +58,7 @@ String CurrentUserUid;
 CurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         fAuth = FirebaseAuth.getInstance();
         fstore = FirebaseFirestore.getInstance();
-        storageReference = FirebaseStorage.getInstance().getReference();
+        //storageReference = FirebaseStorage.getInstance().getReference();
 
         FirebaseDatabase.getInstance().getReference().child("users").child(CurrentUserUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "476708350005",
+    "firebase_url": "https://artclub-3dbb0-default-rtdb.firebaseio.com",
+    "project_id": "artclub-3dbb0",
+    "storage_bucket": "artclub-3dbb0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476708350005:android:0548189ca4b19e2dc6297c",
+        "android_client_info": {
+          "package_name": "com.example.artclub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMXPPvGqbt_zzAEZ3OeB7lLI5-rtmyAgI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

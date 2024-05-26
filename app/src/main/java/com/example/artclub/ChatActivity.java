@@ -1,7 +1,7 @@
 package com.example.artclub;
-
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,20 +19,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ChatActivity extends AppCompatActivity {
     String receiverId, receiverName, senderRoom, receiverRoom;
-    DatabaseReference dbReferenceSender,dbReferenceReceiver,userReference;
+    FirebaseFirestore db;
     ImageView sendBtn;
     EditText messageText;
     RecyclerView recyclerView;
@@ -46,7 +52,7 @@ public class ChatActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbarChat);
         setSupportActionBar(toolbar);
 
-        userReference = FirebaseDatabase.getInstance().getReference("users");
+        db = FirebaseFirestore.getInstance();
         receiverId = getIntent().getStringExtra("id");
         receiverName = getIntent().getStringExtra("name");
 
@@ -63,30 +69,33 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView.setAdapter(messageAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        dbReferenceSender = FirebaseDatabase.getInstance().getReference("chats").child(senderRoom);
-        dbReferenceReceiver = FirebaseDatabase.getInstance().getReference("chats").child(receiverRoom);
-
-        dbReferenceSender.addValueEventListener(new ValueEventListener() {
+        CollectionReference chatsRef = db.collection("chats");
+        chatsRef.document(senderRoom).collection("messages").orderBy("timestamp").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<MessageModel> messages = new ArrayList<>();
-                for (DataSnapshot dataSnapshot:snapshot.getChildren()){
-                    MessageModel messageModel = dataSnapshot.getValue(MessageModel.class);
-                    messages.add(messageModel);
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.w("ChatActivity", "Listen failed.", error);
+                    return;
                 }
-                messageAdapter.clear();
-                for (MessageModel message: messages){
-                    messageAdapter.add(message);
+
+                if (value != null) {
+                    List<MessageModel> messages = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : value) {
+                        MessageModel messageModel = doc.toObject(MessageModel.class);
+                        messages.add(messageModel);
+                    }
+                    messageAdapter.clear();
+                    for (MessageModel message: messages){
+                        messageAdapter.add(message);
+                    }
+                    messageAdapter.notifyDataSetChanged();
+                    recyclerView.scrollToPosition(messageAdapter.getItemCount()-1);
+                } else {
+                    Log.d("ChatActivity", "Current data: null");
                 }
-                messageAdapter.notifyDataSetChanged();
-                recyclerView.scrollToPosition(messageAdapter.getItemCount()-1);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
+
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,15 +109,27 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void SendMassage(String message) {
+    private void SendMassage(String message){
         String messageId = generateMessageId().toString();
         MessageModel messageModel = new MessageModel(messageId,FirebaseAuth.getInstance().getUid(),message);
         messageAdapter.add(messageModel);
 
-        dbReferenceSender.child(messageId).setValue(messageModel).addOnSuccessListener(new OnSuccessListener<Void>() {
+        CollectionReference chatsRef = db.collection("chats");
+        DocumentReference senderRoomRef = chatsRef.document(senderRoom);
+        DocumentReference receiverRoomRef = chatsRef.document(receiverRoom);
+
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("message", message);
+        messageData.put("senderId", FirebaseAuth.getInstance().getUid());
+        messageData.put("receiverId", receiverId);
+        messageData.put("timestamp", Timestamp.now());
+
+        senderRoomRef.collection("messages").document(messageId).set(messageData).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
-
+                receiverRoomRef.collection("messages").document(messageId).set(messageData);
+                recyclerView.scrollToPosition(messageAdapter.getItemCount()-1);
+                messageText.setText("");
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -116,12 +137,8 @@ public class ChatActivity extends AppCompatActivity {
                 Toast.makeText(ChatActivity.this, "Failed to send the message", Toast.LENGTH_SHORT).show();
             }
         });
-        dbReferenceReceiver.child(messageId).setValue(messageModel);
-        recyclerView.scrollToPosition(messageAdapter.getItemCount()-1);
-        messageText.setText("");
-
-
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();

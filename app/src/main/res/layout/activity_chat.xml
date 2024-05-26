@@ -38,11 +38,11 @@
 
         <ImageView
             android:id="@+id/sendMessageIcon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentRight="true"
-            android:padding="15dp"
-            android:src="@drawable/icon_send"
+
+            android:src="@drawable/baseline_arrow_circle_up_24"
             />
 
 

@@ -6,6 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        app:srcCompat="@drawable/rec" />
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbarChat"
         android:layout_width="match_parent"
@@ -41,9 +46,12 @@
 
     <TextView
         android:id="@+id/nametextt"
-        android:layout_width="220dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="150dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="320dp"
+        android:layout_marginLeft="15dp"
+        android:textSize="32sp"
+        android:textStyle="bold"
         android:text="Name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,15 +59,58 @@
 
     <TextView
         android:id="@+id/emailTextt"
-        android:layout_width="220dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="350dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginTop="470dp"
+        android:layout_marginLeft="15dp"
         android:text="mail"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/nametextt" />
 
-<!--    <Button-->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="80dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="300dp"
+        android:layout_marginLeft="15dp"
+        android:text="UserName"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="80dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="450dp"
+        android:layout_marginLeft="15dp"
+        android:text="Email"
+        android:textStyle="bold"/>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/ProfileImage"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="80dp"
+        android:layout_marginLeft="125dp"
+        android:background="@drawable/shape"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.115" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_marginLeft="300dp"
+        android:layout_marginTop="220dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/baseline_border_color_24" />
+
+
+    <!--    <Button-->
 <!--        android:id="@+id/Verify"-->
 <!--        android:layout_width="wrap_content"-->
 <!--        android:layout_height="wrap_content"-->
@@ -84,24 +135,24 @@
 <!--        app:layout_constraintHorizontal_bias="0.498"-->
 <!--        app:layout_constraintStart_toStartOf="parent" />-->
 
-    <Button
-        android:id="@+id/respassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="468dp"
-        android:text="Res Password"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<!--    <Button-->
+<!--        android:id="@+id/respassword"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="468dp"-->
+<!--        android:text="Res Password"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
 
-    <Button
-        android:id="@+id/Cprofile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="360dp"
-        android:text="Chagen Profile"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/respassword" />
+<!--    <Button-->
+<!--        android:id="@+id/Cprofile"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="360dp"-->
+<!--        android:text="Chagen Profile"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/respassword" />-->
 
 </RelativeLayout>

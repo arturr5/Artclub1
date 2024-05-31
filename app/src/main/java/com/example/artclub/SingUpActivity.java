@@ -1,5 +1,6 @@
 package com.example.artclub;
 
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -80,11 +81,11 @@ public class SingUpActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
                         firebaseUser.reload();
                         if (firebaseUser != null) {
                             Toast.makeText(SingUpActivity.this, "Verifacation has been send to your email", Toast.LENGTH_SHORT).show();
                             firebaseUser.sendEmailVerification();
-
                             UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder().setDisplayName(name).build();
                             firebaseUser.updateProfile(userProfileChangeRequest);
                             UserModel userModel = new UserModel(firebaseUser.getUid(), email, password, name);
@@ -95,10 +96,10 @@ public class SingUpActivity extends AppCompatActivity {
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
-                                            Intent intent = new Intent(SingUpActivity.this, MainActivity.class);
-                                            intent.putExtra("name", name);
-                                            startActivity(intent);
-                                            finish();
+//                                                Intent intent = new Intent(SingUpActivity.this, MainActivity.class);
+//                                                intent.putExtra("name", name);
+//                                                startActivity(intent);
+//                                                finish();
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {

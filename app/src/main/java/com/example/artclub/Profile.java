@@ -32,8 +32,10 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
-import de.hdodenhof.circleimageview.CircleImageView;
+import java.util.HashMap;
+import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 public class Profile extends AppCompatActivity {
     TextView FullName, Email;
 
@@ -45,8 +47,8 @@ public class Profile extends AppCompatActivity {
     private CircleImageView profileImageView;
     StorageReference storageReference;
     String CurrentUserUid;
-    private static final int REQUEST_IMAGE_SELECT = 1000;
-    // private ImageView profileImageView;
+    private static final int REQUEST_IMAGE_SELECT = 1;
+    private static final int IMAGE_UPLOAD_REQUEST_CODE = 2;
     private Uri imageUri;
 
     @Override
@@ -72,8 +74,6 @@ public class Profile extends AppCompatActivity {
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
 
-
-
         profileImageView = findViewById(R.id.ProfileImage);
         profileImageView.setClickable(true);
 
@@ -94,6 +94,11 @@ public class Profile extends AppCompatActivity {
 
                     FullName.setText(UserName);
                     Email.setText(UserEmail);
+
+                    String profilePictureUrl = documentSnapshot.getString("profilePictureUrl");
+                    if (profilePictureUrl != null) {
+                        Picasso.get().load(profilePictureUrl).into(profileImageView);
+                    }
                 } else {
                     Toast.makeText(Profile.this, "Document does not exist", Toast.LENGTH_SHORT).show();
                 }
@@ -131,100 +136,61 @@ public class Profile extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == R.id.logoutm){ // Change to R.id.logoutm
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(Profile.this, SingInActivity.class);
+        if(item.getItemId() == R.id.main) {
+            Intent intent = new Intent(Profile.this, Profile.class);
             startActivity(intent);
-            finish();
-            return true;
         }
-        if(item.getItemId()==R.id.main){
+        if(item.getItemId() == R.id.logoutm) {
+            fAuth.signOut();
             Intent intent = new Intent(Profile.this, MainActivity.class);
             startActivity(intent);
-            finish();
-            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-//    private void openAlert() {
-//        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        final View view = getLayoutInflater().inflate(R.layout.alert_dialog, null);
-//        builder.setView(view);
-//        builder.setCancelable(false);
-
-//        Button buttonV = view.findViewById(R.id.btnV);
-//        final EditText rePassword = view.findViewById(R.id.edtPass);
-//        Button ChangeProfile = view.findViewById(R.id.btnChProf);
-
-//        builder.setTitle("Change Password");
-//        builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                String pass = rePassword.getText().toString();
-//                if (pass.isEmpty()) {
-//                    rePassword.setError("Password can't be empty");
-//                } else {
-//                    fAuth.getCurrentUser().updatePassword(pass).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            Toast.makeText(Profile.this, "Password Updated", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }).addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception e) {
-//                            Toast.makeText(Profile.this, "Error in updating password", Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//                }
-//            }
-//        });
-//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                dialog.dismiss();
-//            }
-//        });
-//        builder.show();
-//    }
-private void openGallery() {
-    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-    startActivityForResult(intent, REQUEST_IMAGE_SELECT);
-}
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_SELECT && resultCode == RESULT_OK && data != null) {
+        if (requestCode == REQUEST_IMAGE_SELECT && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
-            profileImageView.setImageURI(imageUri);
-            uploadImageToFirebase(imageUri);
+            startUploadImage();
+        }
+        if (requestCode == IMAGE_UPLOAD_REQUEST_CODE && resultCode == RESULT_OK) {
+            Uri downloadUrl = data.getData();
+            uploadImageToFirebaseStorage(downloadUrl);
         }
     }
 
-    private void uploadImageToFirebase(Uri imageUri) {
-        final StorageReference fileRef = storageReference.child("users/" + fAuth.getCurrentUser().getUid() + "profile.jpg");
-        fileRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        // Update the Firestore document with the user's profile picture URL.
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        db.collection("users").document(fAuth.getCurrentUser().getUid()).update("profilePictureUrl", uri.toString());
-
-                        Picasso.get().load(uri).into(profileImageView);
-                        Toast.makeText(Profile.this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(Profile.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void openGallery() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, REQUEST_IMAGE_SELECT);
     }
 
+    private void startUploadImage() {
+        StorageReference profilePicsRef = storageReference.child("profile_pictures").child(CurrentUserUid);
+        if (imageUri != null) {
+            UploadTask uploadTask = profilePicsRef.putFile(imageUri);
+            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Intent intent = new Intent(Profile.this, Profile.class);
+                    startActivityForResult(intent, IMAGE_UPLOAD_REQUEST_CODE);
+                }
+            });
+        } else {
+            Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void uploadImageToFirebaseStorage(Uri downloadUrl) {
+        // Save the profile picture URL to Firestore
+        FirebaseUser user = fAuth.getCurrentUser();
+        if (user != null) {
+            String uid = user.getUid();
+            DocumentReference documentReference = fstore.collection("users").document(uid);
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("profilePictureUrl", downloadUrl.toString());
+            documentReference.update(userMap);
+        }
+    }
 }
